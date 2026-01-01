@@ -63,9 +63,20 @@ class AdminDrawer extends StatelessWidget {
                   () => Get.snackbar("Info", "Reports screen coming soon")),
 
           // 🔹 SuperAdmin-only option
-          if (role == "SUPER_ADMIN")
-            drawerItem("Create Admin", Icons.admin_panel_settings,
-                    () => _navigate(AppRoutes.adminCreate)),
+          // 🔹 SuperAdmin-only options
+          if (role == "SUPER_ADMIN") ...[
+            drawerItem(
+              "Create Admin",
+              Icons.admin_panel_settings,
+                  () => _navigate(AppRoutes.adminCreate),
+            ),
+            drawerItem(
+              "Update Admin",
+              Icons.edit,
+                  () => _navigate(AppRoutes.adminUpdate),
+            ),
+          ],
+
 
           const Divider(),
 

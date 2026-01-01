@@ -4,4 +4,6 @@ class AppUrl {
   // 🔹 Admin base path
   static const String adminAuth = "$baseUrl/auth/admin";
 
+
+
 }

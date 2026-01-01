@@ -5,12 +5,15 @@ import '../View/admin_login_v/admin_login_binding.dart';
 import '../View/admin_login_v/admin_login_view.dart';
 import '../View/admin_create_v/admin_create_view.dart';
 import '../View/admin_create_v/admin_create_binding.dart';
+import '../View/admin_update_v/admin_update_view.dart';
+import '../View/admin_update_v/admin_update_binding.dart';
 
 class AppRoutes {
   // 🔹 Route names
   static const String adminLogin = "/admin-login";
   static const String adminDashboard = "/admin-dashboard";
-  static const String adminCreate = "/admin-create"; // New route
+  static const String adminCreate = "/admin-create";
+  static const String adminUpdate = "/admin-update"; // ✅ NEW
 
   // 🔹 Initial route
   static const String INITIAL = adminLogin;
@@ -25,12 +28,16 @@ class AppRoutes {
     GetPage(
       name: adminDashboard,
       page: () => AdminDashboardScreen(),
-      // You can add a binding here if needed
     ),
     GetPage(
       name: adminCreate,
-      page: () => const AdminCreateView(), // SuperAdmin-only screen
+      page: () => const AdminCreateView(),
       binding: AdminCreateBinding(),
+    ),
+    GetPage(
+      name: adminUpdate,
+      page: () => const AdminUpdateView(),
+      binding: AdminUpdateBinding(),
     ),
   ];
 }
