@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import '../../Utils/SearchableDropdown/SearchableDropdown.dart';
 import '../../Utils/Text_form_wgt/text_form_field_wgt.dart';
 import '../../Utils/app_colors/app_colors.dart';
 import '../../view_model/admin_update_c/admin_update_controller.dart';
@@ -12,13 +12,19 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-
       appBar: AppBar(
         backgroundColor: AppColors.primary,
-        title: const Text("Update Admin"),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          "Update Admin",
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
       ),
-
       body: Center(
         child: Card(
           elevation: 6,
@@ -31,49 +37,41 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-
-                const Icon(Icons.edit, size: 60, color: Colors.deepPurple),
+                const Icon(Icons.admin_panel_settings,
+                    size: 60, color: Colors.deepPurple),
                 const SizedBox(height: 12),
-
                 const Text(
                   "Update Admin (SuperAdmin Only)",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 24),
 
-                /// 🔽 Admin Dropdown
-                Obx(() => DropdownButtonFormField<Map<String, dynamic>>(
-                  decoration: const InputDecoration(
-                    labelText: "Select Admin",
-                    border: OutlineInputBorder(),
-                  ),
-                  items: controller.admins.map<DropdownMenuItem<Map<String, dynamic>>>((admin) {
-                    return DropdownMenuItem<Map<String, dynamic>>(
-                      value: admin,
-                      child: Text(admin['email'] ?? ''),
-                    );
-                  }).toList(),
-                  onChanged: (Map<String, dynamic>? value) {
-                    if (value != null) {
-                      controller.selectAdmin(value);
-                    }
-                  },
-                )),
-
-
-                const SizedBox(height: 16),
-
-                TextFormFieldWgt(
-                  hinttext: "Admin Email",
-                  controller: controller.emailCtrl,
-                  prxicon: Icons.email,
+                /// 🔹 Dropdown
+                DropdownWithSearch(
+                  hintText: "Select Admin",
+                  items: controller.admins,
+                  selectedId: controller.selectedAdminId,
+                  onSelect: controller.selectAdmin,
                 ),
 
+
+
                 const SizedBox(height: 16),
 
+                /// 🔹 Email field
+                TextFormFieldWgt(
+                  hinttext: "Email",
+                  controller: controller.emailCtrl,
+                  prxicon: Icons.email,
+                  inptype: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                /// 🔹 Password field
                 Obx(() => TextFormFieldWgt(
-                  hinttext: "New Password",
+                  hinttext: "Password",
+                  maxline: 1,
                   controller: controller.passwordCtrl,
                   prxicon: Icons.lock,
                   obstxt: controller.isPasswordHidden.value,
@@ -85,6 +83,7 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
 
                 const SizedBox(height: 24),
 
+                /// 🔹 Update button
                 Obx(() => SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -99,10 +98,15 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
                       ),
                     ),
                     child: controller.isLoading.value
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
                         : const Text(
                       "UPDATE ADMIN",
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 )),

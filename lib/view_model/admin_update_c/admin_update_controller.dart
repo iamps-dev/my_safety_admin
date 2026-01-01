@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-
 import '../../Repo/Login/auth_repository.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
 
@@ -17,7 +16,8 @@ class AdminUpdateController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isPasswordHidden = true.obs;
 
-  final RxList admins = [].obs;
+  // Admin list and selection
+  final RxList<Map<String, dynamic>> admins = <Map<String, dynamic>>[].obs;
   final RxInt selectedAdminId = 0.obs;
 
   @override
@@ -31,32 +31,37 @@ class AdminUpdateController extends GetxController {
   void _checkSuperAdmin() {
     final role = _box.read("role");
     if (role != "SUPER_ADMIN") {
-      AppSnackBar.showError("Access denied!");
+      AppSnackBar.showError("Access denied! Only SUPER_ADMIN can access.");
       Get.back();
     }
   }
 
+  /// 🔹 Fetch all admins
   Future<void> fetchAdmins() async {
     try {
-      final response = await _repo.getAllAdmins();
 
-      if (response['success'] == true && response['data'] != null) {
+
+      final response = await _repo.getAllAdmins();
+       // Should not reach here if 403
+
+      if (response.isNotEmpty) {
         admins.assignAll(
-          List<Map<String, dynamic>>.from(response['data']),
+          response.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList(),
         );
       } else {
         AppSnackBar.showError("No admins found");
       }
     } catch (e) {
+      print("Error fetching admins: $e");
       AppSnackBar.showError("Failed to load admins");
     }
   }
 
-
   /// 🔹 Select admin from dropdown
-  void selectAdmin(Map admin) {
+  void selectAdmin(Map<String, dynamic> admin) {
     selectedAdminId.value = admin['id'];
     emailCtrl.text = admin['email'];
+    passwordCtrl.clear();
   }
 
   /// 🔹 Toggle password visibility
@@ -72,13 +77,14 @@ class AdminUpdateController extends GetxController {
     }
 
     if (emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
-      AppSnackBar.showError("All fields required");
+      AppSnackBar.showError("All fields are required");
       return;
     }
 
     try {
       isLoading.value = true;
 
+      // ✅ PUT request automatically includes token via ApiClient interceptor
       final response = await _repo.updateAdmin({
         "adminId": selectedAdminId.value,
         "newEmail": emailCtrl.text.trim(),
@@ -89,9 +95,10 @@ class AdminUpdateController extends GetxController {
         AppSnackBar.showSuccess(response['message']);
         passwordCtrl.clear();
       } else {
-        AppSnackBar.showError(response['message']);
+        AppSnackBar.showError(response['message'] ?? "Failed to update admin");
       }
     } catch (e) {
+      print("Error updating admin: $e");
       AppSnackBar.showError(e.toString());
     } finally {
       isLoading.value = false;
