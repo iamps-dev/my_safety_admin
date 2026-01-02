@@ -79,32 +79,49 @@ class AdminUpdateController extends GetxController {
       return;
     }
 
-    if (emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
-      AppSnackBar.showError("All fields are required");
+    if (passwordCtrl.text.isEmpty) {
+      AppSnackBar.showError("Password is required");
       return;
     }
 
     try {
       isLoading.value = true;
 
-      // ✅ PUT request automatically includes token via ApiClient interceptor
       final response = await _repo.updateAdmin({
         "adminId": selectedAdminId.value,
         "newEmail": emailCtrl.text.trim(),
         "newPassword": passwordCtrl.text.trim(),
       });
 
+      if (isClosed) return; // ✅ IMPORTANT SAFETY CHECK
+
       if (response['success'] == true) {
         AppSnackBar.showSuccess(response['message']);
+
+        /// Close keyboard safely
+        FocusManager.instance.primaryFocus?.unfocus();
+
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (isClosed) return; // ✅ CHECK AGAIN
+
+        /// Reset state
+        selectedAdminId.value = 0;
+        emailCtrl.clear();
         passwordCtrl.clear();
       } else {
-        AppSnackBar.showError(response['message'] ?? "Failed to update admin");
+        AppSnackBar.showError(
+          response['message'] ?? "Failed to update admin",
+        );
       }
     } catch (e) {
-      print("Error updating admin: $e");
-      AppSnackBar.showError(e.toString());
+      if (!isClosed) {
+        AppSnackBar.showError(e.toString());
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 

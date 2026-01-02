@@ -46,6 +46,7 @@ class AdminLoginController extends GetxController {
       });
 
       if (response['success'] == true) {
+        print(response);
         final String token = response['data'];
         final Map<String, dynamic> decoded = JwtDecoder.decode(token);
         final String role = decoded['role'];

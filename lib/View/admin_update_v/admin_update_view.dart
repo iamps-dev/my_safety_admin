@@ -64,6 +64,7 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
                     const SizedBox(height: 24),
 
                     /// 🔹 ADMIN DROPDOWN
+                    /// 🔹 ADMIN DROPDOWN
                     DropdownWithSearch(
                       hintText: "Select Admin",
                       items: controller.admins,
@@ -73,19 +74,40 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
 
                     const SizedBox(height: 16),
 
-                    /// 🔹 EMAIL FIELD
-                    TextFormFieldWgt(
-                      hinttext: "Email",
-                      controller: controller.emailCtrl,
-                      prxicon: Icons.email,
-                      inptype: TextInputType.emailAddress,
-                    ),
+                    /// 🔹 SELECTED EMAIL (READ-ONLY)
+                    Obx(() {
+                      if (controller.selectedAdminId.value == 0) {
+                        return const SizedBox();
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade400),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.email, color: Colors.deepPurple),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                controller.emailCtrl.text,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
 
                     const SizedBox(height: 16),
 
-                    /// 🔹 PASSWORD FIELD
+                    /// 🔹 PASSWORD FIELD (ONLY EDITABLE FIELD)
                     Obx(() => TextFormFieldWgt(
-                      hinttext: "Password",
+                      hinttext: "New Password",
                       maxline: 1,
                       controller: controller.passwordCtrl,
                       prxicon: Icons.lock,
@@ -95,6 +117,7 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
                           : Icons.visibility,
                       onSficonTap: controller.togglePassword,
                     )),
+
 
                     const SizedBox(height: 24),
 
