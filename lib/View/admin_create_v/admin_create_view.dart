@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 
 import '../../Utils/Text_form_wgt/text_form_field_wgt.dart';
 import '../../Utils/app_colors/app_colors.dart';
+import '../../app_routes/App_routes.dart';
 import '../../view_model/admin_create_c/admin_create_controller.dart';
+import '../amdin_list_v/AdminListView.dart';
 
 class AdminCreateView extends GetView<AdminCreateController> {
   const AdminCreateView({super.key});
@@ -13,9 +15,9 @@ class AdminCreateView extends GetView<AdminCreateController> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
 
-      // 🔹 APP BAR WITH BACK ARROW
+      // 🔹 APP BAR WITH BACK ARROW AND LIST ICON
       appBar: AppBar(
-        backgroundColor:  AppColors.primary, // ✅ use centralized primary color
+        backgroundColor: AppColors.primary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -26,6 +28,18 @@ class AdminCreateView extends GetView<AdminCreateController> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        actions: [
+          // 🔹 Only visible to SuperAdmin
+          IconButton(
+            icon: const Icon(Icons.list, color: Colors.white),
+            tooltip: "View All Admins",
+            onPressed: () {
+              // Navigate using route name, so binding is applied
+              Get.toNamed(AppRoutes.adminList);
+            },
+          ),
+
+        ],
       ),
 
       body: Center(
@@ -40,7 +54,6 @@ class AdminCreateView extends GetView<AdminCreateController> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 const Icon(
                   Icons.admin_panel_settings,
                   size: 60,

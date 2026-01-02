@@ -37,17 +37,14 @@ class AdminUpdateController extends GetxController {
   }
 
   /// 🔹 Fetch all admins
+  /// 🔹 Fetch all admins
   Future<void> fetchAdmins() async {
     try {
+      final List<Map<String, dynamic>> adminsList =
+      await _repo.getAllAdmins();
 
-
-      final response = await _repo.getAllAdmins();
-       // Should not reach here if 403
-
-      if (response.isNotEmpty) {
-        admins.assignAll(
-          response.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList(),
-        );
+      if (adminsList.isNotEmpty) {
+        admins.assignAll(adminsList);
       } else {
         AppSnackBar.showError("No admins found");
       }
@@ -84,7 +81,6 @@ class AdminUpdateController extends GetxController {
     try {
       isLoading.value = true;
 
-      // ✅ PUT request automatically includes token via ApiClient interceptor
       final response = await _repo.updateAdmin({
         "adminId": selectedAdminId.value,
         "newEmail": emailCtrl.text.trim(),
@@ -93,7 +89,14 @@ class AdminUpdateController extends GetxController {
 
       if (response['success'] == true) {
         AppSnackBar.showSuccess(response['message']);
+
+        // ✅ Clear form fields
+        emailCtrl.clear();
         passwordCtrl.clear();
+
+        // ✅ Reset selected admin
+        selectedAdminId.value = 0;
+
       } else {
         AppSnackBar.showError(response['message'] ?? "Failed to update admin");
       }

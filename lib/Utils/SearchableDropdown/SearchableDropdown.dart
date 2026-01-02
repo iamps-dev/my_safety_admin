@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class DropdownWithSearch extends StatefulWidget {
+class DropdownWithSearch extends StatelessWidget {
   final String hintText;
   final List<Map<String, dynamic>> items;
   final RxInt selectedId;
@@ -16,116 +16,154 @@ class DropdownWithSearch extends StatefulWidget {
   });
 
   @override
-  State<DropdownWithSearch> createState() => _DropdownWithSearchState();
-}
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final selectedItem =
+      items.firstWhereOrNull((e) => e['id'] == selectedId.value);
 
-class _DropdownWithSearchState extends State<DropdownWithSearch> {
-  RxBool isOpen = false.obs;
-  final TextEditingController searchCtrl = TextEditingController();
-  RxList<Map<String, dynamic>> filteredItems = <Map<String, dynamic>>[].obs;
-  String? selectedText;
-
-  @override
-  void initState() {
-    super.initState();
-    filteredItems.assignAll(widget.items);
-    selectedText = null;
-    searchCtrl.addListener(() {
-      final query = searchCtrl.text.toLowerCase();
-      filteredItems.value = widget.items
-          .where((e) => e['email'].toLowerCase().contains(query))
-          .toList();
+      return InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _openBottomSheet(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade400),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.admin_panel_settings,
+                  color: Colors.deepPurple),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  selectedItem?['email'] ?? hintText,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: selectedItem == null
+                        ? Colors.grey
+                        : Colors.black,
+                  ),
+                ),
+              ),
+              const Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 28),
+            ],
+          ),
+        ),
+      );
     });
   }
 
-  @override
-  void dispose() {
-    searchCtrl.dispose();
-    super.dispose();
-  }
+  /// 🔥 Attractive searchable bottom sheet
+  void _openBottomSheet(BuildContext context) {
+    final RxString searchText = ''.obs;
 
-  void toggleDropdown() {
-    isOpen.value = !isOpen.value;
-    if (!isOpen.value) {
-      searchCtrl.clear();
-      filteredItems.assignAll(widget.items);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: toggleDropdown,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  selectedText ?? widget.hintText,
-                  style: TextStyle(
-                    color: selectedText == null ? Colors.grey.shade600 : Colors.black,
-                  ),
-                ),
-                Icon(
-                  isOpen.value ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                ),
-              ],
-            ),
-          ),
+    Get.bottomSheet(
+      Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        if (isOpen.value)
-          Container(
-            height: 200,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(6),
-              color: Colors.white,
+        child: Column(
+          children: [
+            /// Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: searchCtrl,
-                    decoration: const InputDecoration(
-                      hintText: "Search...",
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
+
+            /// Title
+            const Text(
+              "Select Admin",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            /// Search box
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Search by email",
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                Expanded(
-                  child: filteredItems.isEmpty
-                      ? const Center(child: Text("No items found"))
-                      : ListView.builder(
-                    itemCount: filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return ListTile(
-                        title: Text(item['email']),
-                        onTap: () {
-                          selectedText = item['email'];
-                          widget.selectedId.value = item['id'];
-                          widget.onSelect(item);
-                          toggleDropdown();
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+                onChanged: (value) =>
+                searchText.value = value.toLowerCase(),
+              ),
             ),
-          ),
-      ],
-    ));
+
+            const SizedBox(height: 12),
+
+            /// Admin list
+            Expanded(
+              child: Obx(() {
+                final filtered = items.where((e) {
+                  return e['email']
+                      .toString()
+                      .toLowerCase()
+                      .contains(searchText.value);
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return const Center(
+                    child: Text("No admin found"),
+                  );
+                }
+
+                return ListView.separated(
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) =>
+                      Divider(color: Colors.grey.shade300),
+                  itemBuilder: (_, index) {
+                    final admin = filtered[index];
+                    final isSelected =
+                        admin['id'] == selectedId.value;
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.deepPurple,
+                        child: Text(
+                          admin['email'][0].toUpperCase(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Text(admin['email']),
+                      subtitle: Text(admin['role']),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle,
+                          color: Colors.green)
+                          : null,
+                      onTap: () {
+                        onSelect(admin);
+                        Get.back();
+                      },
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
   }
 }

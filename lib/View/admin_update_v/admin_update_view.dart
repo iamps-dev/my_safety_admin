@@ -55,17 +55,6 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
                   onSelect: controller.selectAdmin,
                 ),
 
-
-
-                const SizedBox(height: 16),
-
-                /// 🔹 Email field
-                TextFormFieldWgt(
-                  hinttext: "Email",
-                  controller: controller.emailCtrl,
-                  prxicon: Icons.email,
-                  inptype: TextInputType.emailAddress,
-                ),
                 const SizedBox(height: 16),
 
                 /// 🔹 Password field

@@ -7,13 +7,20 @@ import '../View/admin_create_v/admin_create_view.dart';
 import '../View/admin_create_v/admin_create_binding.dart';
 import '../View/admin_update_v/admin_update_view.dart';
 import '../View/admin_update_v/admin_update_binding.dart';
+import '../View/amdin_list_v/AdminListBinding.dart';
+import '../View/amdin_list_v/AdminListView.dart';
+
+// ✅ New imports for Admin List
+
+
 
 class AppRoutes {
   // 🔹 Route names
   static const String adminLogin = "/admin-login";
   static const String adminDashboard = "/admin-dashboard";
   static const String adminCreate = "/admin-create";
-  static const String adminUpdate = "/admin-update"; // ✅ NEW
+  static const String adminUpdate = "/admin-update";
+  static const String adminList = "/admin-list"; // <-- NEW
 
   // 🔹 Initial route
   static const String INITIAL = adminLogin;
@@ -39,5 +46,12 @@ class AppRoutes {
       page: () => const AdminUpdateView(),
       binding: AdminUpdateBinding(),
     ),
+    // ✅ Admin List page
+    GetPage(
+      name: AppRoutes.adminList,
+      page: () => const AdminListView(),
+      binding: AdminListBinding(), // inject controller here
+    ),
+
   ];
 }
