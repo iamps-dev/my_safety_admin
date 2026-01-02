@@ -11,6 +11,7 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
@@ -25,81 +26,131 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: Card(
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Container(
-            width: 380,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.admin_panel_settings,
-                    size: 60, color: Colors.deepPurple),
-                const SizedBox(height: 12),
-                const Text(
-                  "Update Admin (SuperAdmin Only)",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
 
-                /// 🔹 Dropdown
-                DropdownWithSearch(
-                  hintText: "Select Admin",
-                  items: controller.admins,
-                  selectedId: controller.selectedAdminId,
-                  onSelect: controller.selectAdmin,
-                ),
-
-                const SizedBox(height: 16),
-
-                /// 🔹 Password field
-                Obx(() => TextFormFieldWgt(
-                  hinttext: "Password",
-                  maxline: 1,
-                  controller: controller.passwordCtrl,
-                  prxicon: Icons.lock,
-                  obstxt: controller.isPasswordHidden.value,
-                  sfxicon: controller.isPasswordHidden.value
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  onSficonTap: controller.togglePassword,
-                )),
-
-                const SizedBox(height: 24),
-
-                /// 🔹 Update button
-                Obx(() => SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: controller.isLoading.value
-                        ? null
-                        : controller.updateAdmin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+      /// 🔹 FIXED BODY (NO OVERFLOW)
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Container(
+                width: 380,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.admin_panel_settings,
+                      size: 60,
+                      color: Colors.deepPurple,
                     ),
-                    child: controller.isLoading.value
-                        ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                        : const Text(
-                      "UPDATE ADMIN",
+
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      "Update Admin (SuperAdmin Only)",
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                )),
-              ],
+
+                    const SizedBox(height: 24),
+
+                    /// 🔹 ADMIN DROPDOWN
+                    /// 🔹 ADMIN DROPDOWN
+                    DropdownWithSearch(
+                      hintText: "Select Admin",
+                      items: controller.admins,
+                      selectedId: controller.selectedAdminId,
+                      onSelect: controller.selectAdmin,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// 🔹 SELECTED EMAIL (READ-ONLY)
+                    Obx(() {
+                      if (controller.selectedAdminId.value == 0) {
+                        return const SizedBox();
+                      }
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade400),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.email, color: Colors.deepPurple),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                controller.emailCtrl.text,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+
+                    const SizedBox(height: 16),
+
+                    /// 🔹 PASSWORD FIELD (ONLY EDITABLE FIELD)
+                    Obx(() => TextFormFieldWgt(
+                      hinttext: "New Password",
+                      maxline: 1,
+                      controller: controller.passwordCtrl,
+                      prxicon: Icons.lock,
+                      obstxt: controller.isPasswordHidden.value,
+                      sfxicon: controller.isPasswordHidden.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      onSficonTap: controller.togglePassword,
+                    )),
+
+
+                    const SizedBox(height: 24),
+
+                    /// 🔹 UPDATE BUTTON
+                    Obx(() => SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : controller.updateAdmin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: controller.isLoading.value
+                            ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                            : const Text(
+                          "UPDATE ADMIN",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    )),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

@@ -36,15 +36,20 @@ class AdminUpdateController extends GetxController {
     }
   }
 
-  /// 🔹 Fetch all admins
-  /// 🔹 Fetch all admins
   Future<void> fetchAdmins() async {
     try {
-      final List<Map<String, dynamic>> adminsList =
-      await _repo.getAllAdmins();
+      final response = await _repo.getAllAdmins();
+
+      // ✅ extract list safely
+      final List adminsList = response['data'] ?? [];
 
       if (adminsList.isNotEmpty) {
-        admins.assignAll(adminsList);
+        admins.assignAll(
+          adminsList
+              .map<Map<String, dynamic>>(
+                  (e) => Map<String, dynamic>.from(e))
+              .toList(),
+        );
       } else {
         AppSnackBar.showError("No admins found");
       }
@@ -53,6 +58,7 @@ class AdminUpdateController extends GetxController {
       AppSnackBar.showError("Failed to load admins");
     }
   }
+
 
   /// 🔹 Select admin from dropdown
   void selectAdmin(Map<String, dynamic> admin) {
@@ -73,8 +79,8 @@ class AdminUpdateController extends GetxController {
       return;
     }
 
-    if (emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
-      AppSnackBar.showError("All fields are required");
+    if (passwordCtrl.text.isEmpty) {
+      AppSnackBar.showError("Password is required");
       return;
     }
 
@@ -87,24 +93,35 @@ class AdminUpdateController extends GetxController {
         "newPassword": passwordCtrl.text.trim(),
       });
 
+      if (isClosed) return; // ✅ IMPORTANT SAFETY CHECK
+
       if (response['success'] == true) {
         AppSnackBar.showSuccess(response['message']);
 
-        // ✅ Clear form fields
+        /// Close keyboard safely
+        FocusManager.instance.primaryFocus?.unfocus();
+
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (isClosed) return; // ✅ CHECK AGAIN
+
+        /// Reset state
+        selectedAdminId.value = 0;
         emailCtrl.clear();
         passwordCtrl.clear();
-
-        // ✅ Reset selected admin
-        selectedAdminId.value = 0;
-
       } else {
-        AppSnackBar.showError(response['message'] ?? "Failed to update admin");
+        AppSnackBar.showError(
+          response['message'] ?? "Failed to update admin",
+        );
       }
     } catch (e) {
-      print("Error updating admin: $e");
-      AppSnackBar.showError(e.toString());
+      if (!isClosed) {
+        AppSnackBar.showError(e.toString());
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 

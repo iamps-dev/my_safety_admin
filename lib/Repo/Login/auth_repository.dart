@@ -19,21 +19,9 @@ class AuthRepository {
 
   // 🔹 Get all Admins API (List)
 // 🔹 Get all Admins API
-  Future<List<Map<String, dynamic>>> getAllAdmins() async {
-    final response =
-    await ApiClient.dio.get("${AppUrl.adminAuth}/all");
-
-    // response.data is a MAP
-    final Map<String, dynamic> body =
-    Map<String, dynamic>.from(response.data);
-
-    // extract LIST from "data"
-    final List admins = body['data'] ?? [];
-
-    return admins
-        .map<Map<String, dynamic>>(
-            (e) => Map<String, dynamic>.from(e))
-        .toList();
+  Future<Map<String, dynamic>> getAllAdmins() async {
+    final response = await ApiClient.dio.get("${AppUrl.adminAuth}/all");
+    return response.data; // <-- Map
   }
 
 }
