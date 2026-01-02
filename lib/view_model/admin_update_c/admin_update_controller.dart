@@ -36,17 +36,19 @@ class AdminUpdateController extends GetxController {
     }
   }
 
-  /// 🔹 Fetch all admins
   Future<void> fetchAdmins() async {
     try {
-
-
       final response = await _repo.getAllAdmins();
-       // Should not reach here if 403
 
-      if (response.isNotEmpty) {
+      // ✅ extract list safely
+      final List adminsList = response['data'] ?? [];
+
+      if (adminsList.isNotEmpty) {
         admins.assignAll(
-          response.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e)).toList(),
+          adminsList
+              .map<Map<String, dynamic>>(
+                  (e) => Map<String, dynamic>.from(e))
+              .toList(),
         );
       } else {
         AppSnackBar.showError("No admins found");
@@ -56,6 +58,7 @@ class AdminUpdateController extends GetxController {
       AppSnackBar.showError("Failed to load admins");
     }
   }
+
 
   /// 🔹 Select admin from dropdown
   void selectAdmin(Map<String, dynamic> admin) {
