@@ -16,10 +16,14 @@ class AdminListController extends GetxController {
     try {
       isLoading.value = true;
 
-      final response = await _repo.getAllAdmins(); // returns List<Map>
+      final response = await _repo.getAllAdmins(); // Map
 
-      // directly assign to admins
-      admins.value = List<Map<String, dynamic>>.from(response);
+      if (response['data'] != null && response['data'] is List) {
+        admins.value =
+        List<Map<String, dynamic>>.from(response['data']);
+      } else {
+        admins.clear();
+      }
 
       if (admins.isEmpty) {
         AppSnackBar.showError("No admins found");
@@ -31,6 +35,7 @@ class AdminListController extends GetxController {
       isLoading.value = false;
     }
   }
+
 
   /// Format date to dd-MM-yyyy
   String formatDate(String dateStr) {
