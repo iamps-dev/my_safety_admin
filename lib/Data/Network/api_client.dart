@@ -3,7 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import '../Appurl/app_url.dart';
 
 class ApiClient {
-  static final _storage = GetStorage();
+  static final GetStorage _storage = GetStorage();
 
   static final Dio dio = Dio(
     BaseOptions(
@@ -14,102 +14,119 @@ class ApiClient {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
+
+      // ✅ IMPORTANT: Allow backend to return 401 / 403
+      validateStatus: (status) => status != null && status < 500,
     ),
   )..interceptors.add(
     InterceptorsWrapper(
+      // 🔹 Attach token automatically
       onRequest: (options, handler) {
         final token = _storage.read("jwt_token");
 
-        if (token != null && token.isNotEmpty) {
+        if (token != null && token.toString().isNotEmpty) {
           options.headers["Authorization"] = "Bearer $token";
         }
         return handler.next(options);
       },
-      onError: (error, handler) {
-        if (error.response?.statusCode == 401) {
-          clearToken();
-          // Get.offAllNamed('/login');
+
+      // 🔹 Handle auth errors globally
+      onResponse: (response, handler) {
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          clearToken(); // token expired / unauthorized
         }
+        return handler.next(response);
+      },
+
+      // 🔹 Network / unexpected error
+      onError: (error, handler) {
         return handler.next(error);
       },
     ),
   );
 
-  // 🔐 Save token
+  // ================= TOKEN =================
+
+  /// 🔐 Save JWT
   static void saveToken(String token) {
     _storage.write("jwt_token", token);
   }
 
-  // 🔓 Clear token
+  /// 🔓 Remove JWT
   static void clearToken() {
     _storage.remove("jwt_token");
   }
 
-  // 🔵 POST
+  // ================= REQUESTS =================
+
+  /// 🟢 GET
+  static Future<Map<String, dynamic>> get(String url) async {
+    final response = await dio.get(url);
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw Exception(
+        response.data is Map
+            ? response.data['message'] ?? "Unauthorized"
+            : "Unauthorized",
+
+
+      );
+    }
+
+    return Map<String, dynamic>.from(response.data);
+  }
+
+  /// 🔵 POST
   static Future<Map<String, dynamic>> post(
       String url, {
         Map<String, dynamic>? body,
       }) async {
-    try {
-      final response = await dio.post(url, data: body);
-      return response.data;
-    } on DioException catch (e) {
-      print(e);
+    final response = await dio.post(url, data: body);
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
       throw Exception(
-        e.response?.data is Map
-            ? e.response?.data['message'] ?? "Server error"
-            : "Server error",
+        response.data is Map
+            ? response.data['message'] ?? "Unauthorized"
+            : "Unauthorized",
       );
     }
+
+    return Map<String, dynamic>.from(response.data);
   }
 
-  // 🟢 GET
-  static Future<Map<String, dynamic>> get(String url) async {
-    try {
-      final response = await dio.get(url);
-      return response.data;
-    } on DioException catch (e) {
-      print("+++++++++++++++++");
-      print(e);
-      throw Exception(
-        e.response?.data is Map
-            ? e.response?.data['message'] ?? "Server error"
-            : "Server error",
-      );
-    }
-  }
-
-  // 🟡 PATCH
+  /// 🟡 PATCH
   static Future<Map<String, dynamic>> patch(
       String url, {
         Map<String, dynamic>? body,
       }) async {
-    try {
-      final response = await dio.patch(url, data: body);
-      return response.data;
-    } on DioException catch (e) {
+    final response = await dio.patch(url, data: body);
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
       throw Exception(
-        e.response?.data is Map
-            ? e.response?.data['message'] ?? "Server error"
-            : "Server error",
+        response.data is Map
+            ? response.data['message'] ?? "Unauthorized"
+            : "Unauthorized",
       );
     }
+
+    return Map<String, dynamic>.from(response.data);
   }
 
-  // 🔴 PUT (✅ ADDED)
+  /// 🔴 PUT
   static Future<Map<String, dynamic>> put(
       String url, {
         Map<String, dynamic>? body,
       }) async {
-    try {
-      final response = await dio.put(url, data: body);
-      return response.data;
-    } on DioException catch (e) {
+    final response = await dio.put(url, data: body);
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
       throw Exception(
-        e.response?.data is Map
-            ? e.response?.data['message'] ?? "Server error"
-            : "Server error",
+        response.data is Map
+            ? response.data['message'] ?? "Unauthorized"
+            : "Unauthorized",
       );
     }
+
+    return Map<String, dynamic>.from(response.data);
   }
 }

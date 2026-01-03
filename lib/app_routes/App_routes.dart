@@ -38,7 +38,7 @@ class AppRoutes {
     ),
     GetPage(
       name: adminCreate,
-      page: () => const AdminCreateView(),
+      page: () =>  AdminCreateView(),
       binding: AdminCreateBinding(),
     ),
     GetPage(

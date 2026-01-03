@@ -30,6 +30,7 @@ class AdminListController extends GetxController {
       }
 
     } catch (e) {
+      print(e);
       AppSnackBar.showError(e.toString());
     } finally {
       isLoading.value = false;

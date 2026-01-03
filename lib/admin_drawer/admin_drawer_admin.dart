@@ -70,11 +70,7 @@ class AdminDrawer extends StatelessWidget {
               Icons.admin_panel_settings,
                   () => _navigate(AppRoutes.adminCreate),
             ),
-            drawerItem(
-              "Update Admin",
-              Icons.edit,
-                  () => _navigate(AppRoutes.adminUpdate),
-            ),
+
           ],
 
 

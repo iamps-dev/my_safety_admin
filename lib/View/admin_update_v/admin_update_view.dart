@@ -1,155 +1,107 @@
+import 'package:aiarchs/view_model/admin_create_c/admin_create_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../Utils/SearchableDropdown/SearchableDropdown.dart';
 import '../../Utils/Text_form_wgt/text_form_field_wgt.dart';
-import '../../Utils/app_colors/app_colors.dart';
 import '../../view_model/admin_update_c/admin_update_controller.dart';
 
-class AdminUpdateView extends GetView<AdminUpdateController> {
+class AdminUpdateView extends GetView<AdminController> {
   const AdminUpdateView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        title: const Text(
-          "Update Admin",
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-
-      /// 🔹 FIXED BODY (NO OVERFLOW)
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Container(
-                width: 380,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.admin_panel_settings,
-                      size: 60,
-                      color: Colors.deepPurple,
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Container(
+              width: 380, // ✅ SAME WIDTH AS CREATE
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.admin_panel_settings,
+                    size: 60,
+                    color: Colors.deepPurple,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Update Admin (SuperAdmin Only)",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
 
-                    const SizedBox(height: 12),
+                  /// Dropdown
+                  DropdownWithSearch(
+                    hintText: "Select Admin",
+                    items: controller.admins,
+                    selectedId: controller.selectedAdminId,
+                    onSelect: controller.selectAdmin,
+                  ),
 
-                    const Text(
-                      "Update Admin (SuperAdmin Only)",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
 
-                    const SizedBox(height: 24),
 
-                    /// 🔹 ADMIN DROPDOWN
-                    /// 🔹 ADMIN DROPDOWN
-                    DropdownWithSearch(
-                      hintText: "Select Admin",
-                      items: controller.admins,
-                      selectedId: controller.selectedAdminId,
-                      onSelect: controller.selectAdmin,
-                    ),
+                  const SizedBox(height: 16),
 
-                    const SizedBox(height: 16),
+                  /// Password
+                  Obx(() => TextFormFieldWgt(
+                    hinttext: "New Password",
+                    maxline: 1,
+                    controller: controller.passwordCtrl,
+                    prxicon: Icons.lock,
+                    obstxt: controller.isPasswordHidden.value,
+                    sfxicon: controller.isPasswordHidden.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    onSficonTap: controller.togglePassword,
+                  )),
 
-                    /// 🔹 SELECTED EMAIL (READ-ONLY)
-                    Obx(() {
-                      if (controller.selectedAdminId.value == 0) {
-                        return const SizedBox();
-                      }
+                  const SizedBox(height: 24),
 
-                      return Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                  /// Button
+                  Obx(() => SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.grey.shade400),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.email, color: Colors.deepPurple),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                controller.emailCtrl.text,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-
-                    const SizedBox(height: 16),
-
-                    /// 🔹 PASSWORD FIELD (ONLY EDITABLE FIELD)
-                    Obx(() => TextFormFieldWgt(
-                      hinttext: "New Password",
-                      maxline: 1,
-                      controller: controller.passwordCtrl,
-                      prxicon: Icons.lock,
-                      obstxt: controller.isPasswordHidden.value,
-                      sfxicon: controller.isPasswordHidden.value
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      onSficonTap: controller.togglePassword,
-                    )),
-
-
-                    const SizedBox(height: 24),
-
-                    /// 🔹 UPDATE BUTTON
-                    Obx(() => SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : controller.updateAdmin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: controller.isLoading.value
-                            ? const CircularProgressIndicator(
-                          color: Colors.white,
-                        )
-                            : const Text(
-                          "UPDATE ADMIN",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
                         ),
                       ),
-                    )),
-                  ],
-                ),
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.updateAdmin,
+                      child: controller.isLoading.value
+                          ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Text(
+                        "UPDATE ADMIN",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
               ),
             ),
           ),
@@ -157,4 +109,5 @@ class AdminUpdateView extends GetView<AdminUpdateController> {
       ),
     );
   }
+
 }
