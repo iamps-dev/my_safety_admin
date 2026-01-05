@@ -58,6 +58,7 @@ class AdminLoginView extends GetView<AdminLoginController> {
                 Obx(() => TextFormFieldWgt(
                   hinttext: "Password",
                   maxline: 1,
+                  autofillHints: [AutofillHints.password], // optional
                   controller: controller.passwordCtrl,
                   prxicon: Icons.lock,
                   obstxt: controller.isPasswordHidden.value,

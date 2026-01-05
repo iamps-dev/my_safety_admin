@@ -79,38 +79,37 @@ class AdminListView extends GetView<AdminListController> {
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 6),
-                          // Row with Role, Created Date & TokenVersion
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 6,
-                        children: [
-                          _infoItem(
-                            icon: Icons.person_outline,
-                            text: admin['role'] ?? '',
-                          ),
-                          _infoItem(
-                            icon: Icons.calendar_today,
-                            text:
-                            "Created: ${controller.formatDateTime(admin['createdAt'] ?? '')}",
-                          ),
-                          _infoItem(
-                            icon: Icons.vpn_key_outlined,
-                            text: "Token: ${admin['tokenVersion'] ?? 0}",
-                          ),
+                          // Row with Role, Created Date & Password Version
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 6,
+                            children: [
+                              _infoItem(
+                                icon: Icons.person_outline,
+                                text: admin['role'] ?? '',
+                              ),
+                              _infoItem(
+                                icon: Icons.calendar_today,
+                                text:
+                                    "Created: ${controller.formatDateTime(admin['createdAt'] ?? '')}",
+                              ),
+                              _infoItem(
+                                icon: Icons.vpn_key_outlined,
+                                text:
+                                    "Password Version: ${admin['passwordVersion'] ?? admin['password_version'] ?? 0}",
+                              ),
 
-                          // 🔐 Show ONLY if password was actually changed
-                          if (admin['createdAt'] != admin['passwordChangedAt'])
-                            _infoItem(
-                              icon: Icons.lock_outline,
-                              text:
-                              "Password changed: ${controller.formatDateTime(admin['passwordChangedAt'])}",
-                            ),
+// 🔐 Show ONLY if password was actually changed
+                              if ((admin['createdAt'] ?? '') !=
+                                  (admin['passwordChangedAt'] ?? ''))
+                                _infoItem(
+                                  icon: Icons.lock_outline,
+                                  text:
+                                      "Password changed: ${controller.formatDateTime(admin['passwordChangedAt'] ?? admin['password_changed_at'] ?? '')}",
+                                ),
+                            ],
+                          ),
                         ],
-                      ),
-
-
-
-                      ],
                       ),
                     ),
                   ],

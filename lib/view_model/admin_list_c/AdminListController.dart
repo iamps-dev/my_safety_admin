@@ -17,7 +17,6 @@ class AdminListController extends GetxController {
       isLoading.value = true;
 
       final response = await _repo.getAllAdmins(); // Map
-
       if (response['data'] != null && response['data'] is List) {
         admins.value =
         List<Map<String, dynamic>>.from(response['data']);

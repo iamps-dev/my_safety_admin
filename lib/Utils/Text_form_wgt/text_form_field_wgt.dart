@@ -10,9 +10,7 @@ class TextFormFieldWgt extends StatefulWidget {
     this.prxicon,
     this.prefixIconWidget,
     this.sfxicon,
-    // this.sfxcolor,
-    this.onTap, // ✅ rename here
-
+    this.onTap,
     this.obstxt = false,
     this.validator,
     this.onSficonTap,
@@ -21,15 +19,14 @@ class TextFormFieldWgt extends StatefulWidget {
     this.inptype = TextInputType.text,
     this.inputFormatters,
     this.focusNode,
-    this.onfieldsubmit,
+    this.onFieldSubmitted,
     this.minline,
     this.maxline,
-    this.ontap,
     this.isDropdown = false,
     this.dropdownItems,
     this.enabled = true,
     this.autofocus = false,
-
+    this.autofillHints,
   });
 
   final String hinttext;
@@ -37,9 +34,8 @@ class TextFormFieldWgt extends StatefulWidget {
   final IconData? prxicon;
   final Widget? prefixIconWidget;
   final IconData? sfxicon;
-  // final Color? sfxcolor;
   final TextEditingController controller;
-  final void Function()? onTap; // ✅ use Flutter naming
+  final void Function()? onTap;
 
   final bool obstxt;
   final int? maxlen;
@@ -49,14 +45,15 @@ class TextFormFieldWgt extends StatefulWidget {
   final TextInputType? inptype;
   final List<TextInputFormatter>? inputFormatters;
   final FocusNode? focusNode;
-  final void Function(String)? onfieldsubmit;
-  final void Function()? ontap;
+  final void Function(String)? onFieldSubmitted;
   final int? minline;
   final int? maxline;
   final bool isDropdown;
   final List<String>? dropdownItems;
   final bool enabled;
   final bool autofocus;
+
+  final Iterable<String>? autofillHints;
 
   @override
   State<TextFormFieldWgt> createState() => _TextFormFieldWgtState();
@@ -81,7 +78,7 @@ class _TextFormFieldWgtState extends State<TextFormFieldWgt> {
   @override
   void dispose() {
     if (widget.focusNode == null) {
-      _focusNode.dispose(); // dispose only if created here
+      _focusNode.dispose();
     }
     super.dispose();
   }
@@ -108,14 +105,14 @@ class _TextFormFieldWgtState extends State<TextFormFieldWgt> {
         obscureText: widget.obstxt,
         maxLength: widget.maxlen,
         keyboardType: widget.inptype,
-
         inputFormatters: widget.inputFormatters,
         maxLines: widget.maxline,
         minLines: widget.minline,
-        onTap: widget.ontap,
+        onTap: widget.onTap,
         onChanged: widget.onChanged,
-        onFieldSubmitted: widget.onfieldsubmit,
+        onFieldSubmitted: widget.onFieldSubmitted,
         validator: widget.validator,
+        autofillHints: widget.autofillHints,
         style: const TextStyle(
           fontWeight: FontWeight.w400,
           color: Colors.black,
@@ -130,7 +127,6 @@ class _TextFormFieldWgtState extends State<TextFormFieldWgt> {
               : IconButton(
             icon: Icon(widget.sfxicon),
             onPressed: widget.onSficonTap,
-            // color: widget.sfxcolor,
           ),
           contentPadding: const EdgeInsets.all(10),
           hintText: widget.hinttext,
