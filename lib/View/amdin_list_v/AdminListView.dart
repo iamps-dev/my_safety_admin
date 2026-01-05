@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../Utils/app_colors/app_colors.dart';
 import '../../view_model/admin_list_c/AdminListController.dart';
+import '../../Utils/snackbar/AppSnackBar.dart';
 
 class AdminListView extends GetView<AdminListController> {
   const AdminListView({super.key});
@@ -50,7 +51,7 @@ class AdminListView extends GetView<AdminListController> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Index Circle
                     Container(
@@ -68,6 +69,7 @@ class AdminListView extends GetView<AdminListController> {
                       ),
                     ),
                     const SizedBox(width: 12),
+
                     // Admin Details
                     Expanded(
                       child: Column(
@@ -79,7 +81,6 @@ class AdminListView extends GetView<AdminListController> {
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 6),
-                          // Row with Role, Created Date & Password Version
                           Wrap(
                             spacing: 12,
                             runSpacing: 6,
@@ -91,27 +92,60 @@ class AdminListView extends GetView<AdminListController> {
                               _infoItem(
                                 icon: Icons.calendar_today,
                                 text:
-                                    "Created: ${controller.formatDateTime(admin['createdAt'] ?? '')}",
+                                "Created: ${controller.formatDateTime(admin['createdAt'] ?? '')}",
                               ),
                               _infoItem(
                                 icon: Icons.vpn_key_outlined,
                                 text:
-                                    "Password Version: ${admin['passwordVersion'] ?? admin['password_version'] ?? 0}",
+                                "Password Version: ${admin['passwordVersion'] ?? admin['password_version'] ?? 0}",
                               ),
-
-// 🔐 Show ONLY if password was actually changed
                               if ((admin['createdAt'] ?? '') !=
-                                  (admin['passwordChangedAt'] ?? ''))
+                                  (admin['passwordChangedAt'] ??
+                                      admin['password_changed_at'] ??
+                                      ''))
                                 _infoItem(
                                   icon: Icons.lock_outline,
                                   text:
-                                      "Password changed: ${controller.formatDateTime(admin['passwordChangedAt'] ?? admin['password_changed_at'] ?? '')}",
+                                  "Password changed: ${controller.formatDateTime(admin['passwordChangedAt'] ?? admin['password_changed_at'] ?? '')}",
                                 ),
                             ],
                           ),
                         ],
                       ),
                     ),
+
+                    // 🔄 Active / Inactive Switch with per-row loading
+                    Obx(() {
+                      final loading =
+                          controller.rowLoading[admin['id']] == true;
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Switch(
+                            value: (admin['isActive'] ?? 0) == 1,
+                            onChanged: loading
+                                ? null
+                                : (val) {
+                              if (admin['role'] == 'SUPER_ADMIN') {
+                                AppSnackBar.showError(
+                                    "Cannot change SuperAdmin status");
+                                return;
+                              }
+                              controller.toggleAdminStatus(
+                                  admin['id'], val);
+                            },
+                            activeColor: Colors.green,
+                            inactiveThumbColor: Colors.red,
+                          ),
+                          if (loading)
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -122,7 +156,6 @@ class AdminListView extends GetView<AdminListController> {
     );
   }
 
-  // Helper widget for info rows
   Widget _infoItem({required IconData icon, required String text}) {
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -23,6 +23,10 @@ class AuthRepository {
   Future<Map<String, dynamic>> getAllAdmins() async {
     return await ApiClient.get("${AppUrl.adminAuth}/all");
   }
+// 🔄 Update Admin Status (Activate / Deactivate)
+  Future<Map<String, dynamic>> updateAdminStatus(Map<String, dynamic> body) {
+    return ApiClient.put("${AppUrl.adminAuth}/status", body: body);
+  }
 
 
 }

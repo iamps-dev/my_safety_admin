@@ -50,7 +50,22 @@ class AdminUpdateView extends GetView<AdminController> {
                     onSelect: controller.selectAdmin,
                   ),
 
+                  const SizedBox(height: 16),
 
+                  /// Email display
+                  /// Editable Email
+                  Obx(() {
+                    if (controller.selectedAdminId.value == 0) {
+                      return const SizedBox();
+                    }
+
+                    return TextFormFieldWgt(
+                      hinttext: "Admin Email",
+                      maxline: 1,
+                      controller: controller.emailCtrl,
+                      prxicon: Icons.email,
+                    );
+                  }),
 
                   const SizedBox(height: 16),
 
