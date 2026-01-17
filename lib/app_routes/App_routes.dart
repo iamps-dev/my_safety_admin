@@ -49,7 +49,7 @@ class AppRoutes {
     // ✅ Admin List page
     GetPage(
       name: AppRoutes.adminList,
-      page: () => const AdminListView(),
+      page: () =>  AdminListView(),
       binding: AdminListBinding(), // inject controller here
     ),
 

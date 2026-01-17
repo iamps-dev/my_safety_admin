@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-// motu
 import 'app_routes/App_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
 
-  final box = GetStorage();
-  final savedToken = box.read("token") as String?;
+  // Initialize secure storage
+  const secureStorage = FlutterSecureStorage();
+
+  // Read saved JWT token
+  final savedToken = await secureStorage.read(key: "jwt_token");
 
   String initialRoute = AppRoutes.INITIAL; // default = login
 
@@ -20,7 +21,7 @@ void main() async {
       initialRoute = AppRoutes.adminDashboard;
     } else {
       // Token expired → erase storage and stay on login
-      box.erase();
+      await secureStorage.delete(key: "jwt_token");
     }
   }
 
@@ -44,3 +45,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

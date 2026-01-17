@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../Appurl/app_url.dart';
 
 class ApiClient {
-  static final GetStorage _storage = GetStorage();
+  // 🔐 Secure Storage instance
+  static final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   static final Dio dio = Dio(
     BaseOptions(
@@ -14,17 +15,15 @@ class ApiClient {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
-
-      // ✅ IMPORTANT: Allow backend to return 401 / 403
       validateStatus: (status) => status != null && status < 500,
     ),
   )..interceptors.add(
     InterceptorsWrapper(
       // 🔹 Attach token automatically
-      onRequest: (options, handler) {
-        final token = _storage.read("jwt_token");
+      onRequest: (options, handler) async {
+        final token = await _secureStorage.read(key: ".jt");
 
-        if (token != null && token.toString().isNotEmpty) {
+        if (token != null && token.isNotEmpty) {
           options.headers["Authorization"] = "Bearer $token";
         }
         return handler.next(options);
@@ -48,18 +47,17 @@ class ApiClient {
   // ================= TOKEN =================
 
   /// 🔐 Save JWT
-  static void saveToken(String token) {
-    _storage.write("jwt_token", token);
+  static Future<void> saveToken(String token) async {
+    await _secureStorage.write(key: "jwt_token", value: token);
   }
 
   /// 🔓 Remove JWT
-  static void clearToken() {
-    _storage.remove("jwt_token");
+  static Future<void> clearToken() async {
+    await _secureStorage.delete(key: "jwt_token");
   }
 
   // ================= REQUESTS =================
 
-  /// 🟢 GET
   static Future<Map<String, dynamic>> get(String url) async {
     final response = await dio.get(url);
 
@@ -68,15 +66,12 @@ class ApiClient {
         response.data is Map
             ? response.data['message'] ?? "Unauthorized"
             : "Unauthorized",
-
-
       );
     }
 
     return Map<String, dynamic>.from(response.data);
   }
 
-  /// 🔵 POST
   static Future<Map<String, dynamic>> post(
       String url, {
         Map<String, dynamic>? body,
@@ -94,7 +89,6 @@ class ApiClient {
     return Map<String, dynamic>.from(response.data);
   }
 
-  /// 🟡 PATCH
   static Future<Map<String, dynamic>> patch(
       String url, {
         Map<String, dynamic>? body,
@@ -112,7 +106,6 @@ class ApiClient {
     return Map<String, dynamic>.from(response.data);
   }
 
-  /// 🔴 PUT
   static Future<Map<String, dynamic>> put(
       String url, {
         Map<String, dynamic>? body,

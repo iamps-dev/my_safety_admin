@@ -1,17 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-
 import '../../Repo/Login/auth_repository.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
 
 class AdminListController extends GetxController {
   final AuthRepository _repo = AuthRepository();
 
+  // Loading indicators
   final RxBool isLoading = false.obs;
   final RxList<Map<String, dynamic>> admins = <Map<String, dynamic>>[].obs;
-
-  // Track per-row toggle loading
   final RxMap<int, bool> rowLoading = <int, bool>{}.obs;
 
   @override
@@ -20,89 +16,84 @@ class AdminListController extends GetxController {
     fetchAdmins();
   }
 
-  /// Fetch all admins from API
+  // =======================
+  // Fetch all admins
+  // =======================
   Future<void> fetchAdmins() async {
     try {
       isLoading.value = true;
 
       final response = await _repo.getAllAdmins();
-      print("Fetch admins response: $response");
 
-      if (response['data'] != null && response['data'] is List) {
-        // Normalize is_active → isActive for Flutter UI
-        admins.value = List<Map<String, dynamic>>.from(response['data']).map((admin) {
-          admin['isActive'] = admin['is_active'] ?? 0;
-          return admin;
-        }).toList();
+      if (response['admins'] != null && response['admins'] is List) {
+        admins.assignAll(
+          List<Map<String, dynamic>>.from(response['admins']).map((admin) {
+            // Ensure 'isActive' is a boolean for the switch
+            if (admin['isActive'] == null) {
+              admin['isActive'] = true;
+            } else if (admin['isActive'] is int) {
+              admin['isActive'] = (admin['isActive'] == 1);
+            }
+            return admin;
+          }).toList(),
+        );
       } else {
         admins.clear();
-      }
-
-      if (admins.isEmpty) {
         AppSnackBar.showError("No admins found");
       }
     } catch (e) {
-      AppSnackBar.showError("Failed to fetch admins: $e");
-      print("Fetch admins error: $e");
+      AppSnackBar.showError("Failed to load admins: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Toggle admin Active / Inactive
-  Future<void> toggleAdminStatus(int adminId, bool is_active) async {
+  // =======================
+  // Toggle admin status
+  // =======================
+  Future<void> toggleAdminStatus(int adminId, bool active) async {
     try {
-      print("=== toggleAdminStatus called ===");
-      print("Admin ID: $adminId, New Status: $is_active");
-
       rowLoading[adminId] = true;
 
-      final body = {"adminId": adminId, "active": is_active};
-      print("Request body: $body");
-
-      final response = await _repo.updateAdminStatus(body);
-      print("API response: $response");
+      final response = await _repo.updateAdminStatus({
+        "adminId": adminId,
+        "active": active,
+      });
 
       if (response['success'] == true) {
-        AppSnackBar.showSuccess(response['message']);
-
-        int index = admins.indexWhere((e) => e['id'] == adminId);
-        print("Admin index in list: $index");
-
+        final index = admins.indexWhere((e) => e['id'] == adminId);
         if (index != -1) {
-          // 🔹 Replace the map object to trigger Obx
           final updatedAdmin = Map<String, dynamic>.from(admins[index]);
-          updatedAdmin['isActive'] = is_active ? 1 : 0;
-          admins[index] = updatedAdmin;
-          print("Updated admin: ${admins[index]}");
+          updatedAdmin['isActive'] = active;
+          admins[index] = updatedAdmin; // triggers UI update
         }
+        AppSnackBar.showSuccess(response['message']);
       } else {
-        AppSnackBar.showError(response['message']);
+        AppSnackBar.showError(response['message'] ?? "Failed to update status");
       }
     } catch (e) {
-      AppSnackBar.showError("Failed to update admin status: $e");
-      print("Error caught in toggleAdminStatus: $e");
+      AppSnackBar.showError("Status update failed: $e");
     } finally {
       rowLoading[adminId] = false;
-      print("rowLoading for $adminId = false");
     }
   }
 
-  /// Format date → dd-MM-yyyy
+  // =======================
+  // Optional: Format Date
+  // =======================
   String formatDate(String dateStr) {
     try {
-      final dateTime = DateTime.parse(dateStr);
-      return DateFormat('dd-MM-yyyy').format(dateTime);
+      final dt = DateTime.parse(dateStr);
+      return "${dt.day}-${dt.month}-${dt.year}";
     } catch (_) {
       return dateStr;
     }
   }
 
-  /// Format date & time → dd-MM-yyyy hh:mm a
   String formatDateTime(String dateStr) {
     try {
-      final dateTime = DateTime.parse(dateStr);
-      return DateFormat('dd-MM-yyyy hh:mm a').format(dateTime);
+      final dt = DateTime.parse(dateStr);
+      return "${dt.day}-${dt.month}-${dt.year} ${dt.hour}:${dt.minute}";
     } catch (_) {
       return dateStr;
     }

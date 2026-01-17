@@ -48,11 +48,13 @@ class AdminController extends GetxController {
 
   // =======================
   // Fetch Admins
-  // =======================
+// =======================
   Future<void> fetchAdmins() async {
     try {
       final response = await _repo.getAllAdmins();
-      final List list = response['data'] ?? [];
+      print(response);
+
+      final List list = response['admins'] ?? [];
 
       admins.assignAll(
         list.map<Map<String, dynamic>>(
@@ -63,6 +65,7 @@ class AdminController extends GetxController {
       AppSnackBar.showError("Failed to load admins");
     }
   }
+
 
   // =======================
   // Create Admin

@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../app_routes/App_routes.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
 import 'dart:async';
 
 class AdminDashboardController extends GetxController {
-  final GetStorage _box = GetStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   Timer? _logoutTimer;
 
   @override
@@ -15,8 +15,8 @@ class AdminDashboardController extends GetxController {
     _checkTokenAndScheduleLogout();
   }
 
-  void _checkTokenAndScheduleLogout() {
-    final token = _box.read("token") as String?;
+  Future<void> _checkTokenAndScheduleLogout() async {
+    final token = await _secureStorage.read(key: "jwt_token");
 
     if (token == null || JwtDecoder.isExpired(token)) {
       logout();
@@ -33,9 +33,9 @@ class AdminDashboardController extends GetxController {
     });
   }
 
-  void logout() {
+  Future<void> logout() async {
     _logoutTimer?.cancel();
-    _box.erase(); // clear token & other data
+    await _secureStorage.delete(key: "jwt_token"); // clear token
     AppSnackBar.showError("Session expired. Please login again.");
     Get.offAllNamed(AppRoutes.INITIAL); // navigate to login
   }
@@ -46,3 +46,4 @@ class AdminDashboardController extends GetxController {
     super.onClose();
   }
 }
+

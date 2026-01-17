@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../../Data/Network/api_client.dart';
 import '../../Repo/Login/auth_repository.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
 import '../../app_routes/App_routes.dart';
+import 'dart:convert';
 
 class AdminLoginController extends GetxController {
   final AuthRepository _repo = AuthRepository();
-  final GetStorage _box = GetStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
@@ -45,23 +46,28 @@ class AdminLoginController extends GetxController {
         "password": password,
       });
 
+      print(response);
+
       if (response['success'] == true) {
         final String token = response['data'];
-        final Map<String, dynamic> decoded = JwtDecoder.decode(token);
-        final String role = decoded['role'];
-        final String emailFromToken = decoded['sub'];
 
-        ApiClient.saveToken(token);
-        _box.write("token", token);
-        _box.write("role", role);
-        _box.write("email", emailFromToken);
+        // ✅ Save JWT token with key ".jt"
+        await _secureStorage.write(key: ".jt", value: token);
+
+        // ✅ Decode payload
+        final decoded = JwtDecoder.decode(token);
+        decoded['login_time'] = DateTime.now().toIso8601String();
+
+        // ✅ Save decoded payload with key ".ut"
+        await _secureStorage.write(key: ".ut", value: jsonEncode(decoded));
 
         clearLoginForm();
         AppSnackBar.showSuccess(response['message']);
         Get.offAllNamed(AppRoutes.adminDashboard);
-      } else {
-        AppSnackBar.showError(response['message'] ?? "Login failed");
       }
+
+
+
     } catch (e) {
       AppSnackBar.showError(e.toString());
     } finally {
