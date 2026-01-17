@@ -24,19 +24,24 @@ class AdminListController extends GetxController {
       isLoading.value = true;
 
       final response = await _repo.getAllAdmins();
+      print(response);
 
       if (response['admins'] != null && response['admins'] is List) {
         admins.assignAll(
           List<Map<String, dynamic>>.from(response['admins']).map((admin) {
-            // Ensure 'isActive' is a boolean for the switch
-            if (admin['isActive'] == null) {
-              admin['isActive'] = true;
-            } else if (admin['isActive'] is int) {
-              admin['isActive'] = (admin['isActive'] == 1);
+            // Normalize active status to 'isActive'
+            if (admin['isActive'] != null) {
+              admin['isActive'] = admin['isActive'] == true || admin['isActive'] == 1;
+            } else if (admin['active'] != null) {
+              admin['isActive'] = admin['active'] == true || admin['active'] == 1;
+            } else {
+              admin['isActive'] = true; // default if missing
             }
+
             return admin;
           }).toList(),
         );
+
       } else {
         admins.clear();
         AppSnackBar.showError("No admins found");
@@ -59,6 +64,7 @@ class AdminListController extends GetxController {
         "adminId": adminId,
         "active": active,
       });
+      print(response);
 
       if (response['success'] == true) {
         final index = admins.indexWhere((e) => e['id'] == adminId);

@@ -1,13 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../Repo/Login/auth_repository.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
 
 class AdminController extends GetxController {
   final AuthRepository _repo = AuthRepository();
-  final GetStorage _box = GetStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // =======================
   // Controllers
@@ -34,26 +35,37 @@ class AdminController extends GetxController {
   void onInit() {
     super.onInit();
     _checkSuperAdmin();
-    fetchAdmins(); // 🔥 auto refresh on screen open
+    fetchAdmins();
   }
 
-  /// 🔐 Super Admin check
-  void _checkSuperAdmin() {
-    final role = _box.read("role");
-    if (role != "SUPER_ADMIN") {
-      AppSnackBar.showError("Access denied! Only SUPER_ADMIN can access.");
-      Get.back();
+  /// 🔐 SUPER ADMIN CHECK (SECURE)
+  Future<void> _checkSuperAdmin() async {
+    final jsonStr = await _secureStorage.read(key: ".ut");
+
+    if (jsonStr == null) {
+      _denyAccess();
+      return;
     }
+
+    final Map<String, dynamic> payload = jsonDecode(jsonStr);
+    final role = payload['role'];
+
+    if (role != "SUPER_ADMIN") {
+      _denyAccess();
+    }
+  }
+
+  void _denyAccess() {
+    AppSnackBar.showError("Access denied! Only SUPER_ADMIN can access.");
+    Get.back();
   }
 
   // =======================
   // Fetch Admins
-// =======================
+  // =======================
   Future<void> fetchAdmins() async {
     try {
       final response = await _repo.getAllAdmins();
-      print(response);
-
       final List list = response['admins'] ?? [];
 
       admins.assignAll(
@@ -65,7 +77,6 @@ class AdminController extends GetxController {
       AppSnackBar.showError("Failed to load admins");
     }
   }
-
 
   // =======================
   // Create Admin
@@ -89,8 +100,6 @@ class AdminController extends GetxController {
 
         emailCtrl.clear();
         passwordCtrl.clear();
-
-        // 🔥 refresh admin list after create
         fetchAdmins();
       } else {
         AppSnackBar.showError(response['message']);
@@ -103,7 +112,7 @@ class AdminController extends GetxController {
   }
 
   // =======================
-  // Select Admin (for update)
+  // Select Admin
   // =======================
   void selectAdmin(Map<String, dynamic> admin) {
     selectedAdminId.value = admin['id'];
@@ -140,8 +149,6 @@ class AdminController extends GetxController {
         selectedAdminId.value = 0;
         emailCtrl.clear();
         passwordCtrl.clear();
-
-        // 🔥 refresh admin list after update
         fetchAdmins();
       } else {
         AppSnackBar.showError(response['message']);
@@ -154,7 +161,7 @@ class AdminController extends GetxController {
   }
 
   // =======================
-  // UI helpers
+  // UI Helpers
   // =======================
   void togglePassword() {
     isPasswordHidden.value = !isPasswordHidden.value;
