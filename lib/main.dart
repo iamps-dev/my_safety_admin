@@ -10,8 +10,8 @@ void main() async {
   // Initialize secure storage
   const secureStorage = FlutterSecureStorage();
 
-  // Read saved JWT token
-  final savedToken = await secureStorage.read(key: "jwt_token");
+  // Read saved JWT token (.jt)
+  final savedToken = await secureStorage.read(key: ".jt");
 
   String initialRoute = AppRoutes.INITIAL; // default = login
 
@@ -20,8 +20,9 @@ void main() async {
       // Token is valid → go to dashboard
       initialRoute = AppRoutes.adminDashboard;
     } else {
-      // Token expired → erase storage and stay on login
-      await secureStorage.delete(key: "jwt_token");
+      // Token expired → erase storage
+      await secureStorage.delete(key: ".jt"); // delete token
+      await secureStorage.delete(key: ".ut"); // delete payload
     }
   }
 
@@ -45,4 +46,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

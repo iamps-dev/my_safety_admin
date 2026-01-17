@@ -13,8 +13,9 @@ class AdminDrawer extends StatelessWidget {
 
   /// 🔴 LOGOUT FUNCTION
   void _logout() async {
-    await _secureStorage.delete(key: "jwt_token");
-    await _secureStorage.delete(key: "user_payload");
+    await _secureStorage.delete(key: ".jt");
+    await _secureStorage.delete(key: ".ut");
+
 
     if (Get.isOverlaysOpen) Get.back();
 
@@ -31,12 +32,12 @@ class AdminDrawer extends StatelessWidget {
       Get.toNamed(route);
     });
   }
-
   Future<Map<String, dynamic>> _getUserPayload() async {
-    final jsonStr = await _secureStorage.read(key: "user_payload");
+    final jsonStr = await _secureStorage.read(key: ".ut");
     if (jsonStr == null) return {};
     return Map<String, dynamic>.from(jsonDecode(jsonStr));
   }
+  
 
   @override
   Widget build(BuildContext context) {

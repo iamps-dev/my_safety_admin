@@ -15,8 +15,10 @@ class AdminDashboardController extends GetxController {
     _checkTokenAndScheduleLogout();
   }
 
+  /// 🔹 Check JWT token and schedule auto logout
   Future<void> _checkTokenAndScheduleLogout() async {
-    final token = await _secureStorage.read(key: "jwt_token");
+    // ✅ Use the new key ".jt" for JWT token
+    final token = await _secureStorage.read(key: ".jt");
 
     if (token == null || JwtDecoder.isExpired(token)) {
       logout();
@@ -33,9 +35,14 @@ class AdminDashboardController extends GetxController {
     });
   }
 
+  /// 🔹 Logout
   Future<void> logout() async {
     _logoutTimer?.cancel();
-    await _secureStorage.delete(key: "jwt_token"); // clear token
+
+    // ✅ Delete both JWT token and user payload
+    await _secureStorage.delete(key: ".jt"); // JWT token
+    await _secureStorage.delete(key: ".ut"); // decoded payload
+
     AppSnackBar.showError("Session expired. Please login again.");
     Get.offAllNamed(AppRoutes.INITIAL); // navigate to login
   }
@@ -46,4 +53,3 @@ class AdminDashboardController extends GetxController {
     super.onClose();
   }
 }
-
