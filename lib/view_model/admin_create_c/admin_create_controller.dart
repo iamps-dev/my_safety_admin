@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../../Repo/Login/auth_repository.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
+import '../../app_routes/App_routes.dart';
 
 class AdminController extends GetxController {
   final AuthRepository _repo = AuthRepository();
@@ -37,28 +39,46 @@ class AdminController extends GetxController {
     _checkSuperAdmin();
     fetchAdmins();
   }
-
   /// 🔐 SUPER ADMIN CHECK (SECURE)
   Future<void> _checkSuperAdmin() async {
-    final jsonStr = await _secureStorage.read(key: ".ut");
+    try {
+      // ✅ Read JWT token directly (more secure than relying only on .ut)
+      final token = await _secureStorage.read(key: "jwt_token");
 
-    if (jsonStr == null) {
-      _denyAccess();
-      return;
-    }
+      // ❌ No token or expired → deny access
+      if (token == null || JwtDecoder.isExpired(token)) {
+        _denyAccess();
+        return;
+      }
 
-    final Map<String, dynamic> payload = jsonDecode(jsonStr);
-    final role = payload['role'];
+      // ✅ Decode token
+      final payload = JwtDecoder.decode(token);
 
-    if (role != "SUPER_ADMIN") {
+      // ❌ Check role
+      final role = payload['role']?.toString().toUpperCase() ?? '';
+      if (role != "SUPER_ADMIN") {
+        _denyAccess();
+        return;
+      }
+
+      // ✅ Optionally: also check sub/email exists
+      final email = payload['sub'] ?? '';
+      if (email.isEmpty) {
+        _denyAccess();
+        return;
+      }
+
+    } catch (e) {
+      // ❌ Any error → deny access
       _denyAccess();
     }
   }
 
   void _denyAccess() {
     AppSnackBar.showError("Access denied! Only SUPER_ADMIN can access.");
-    Get.back();
+    Get.offAllNamed(AppRoutes.adminLogin); // safer than Get.back()
   }
+
 
   // =======================
   // Fetch Admins
@@ -73,7 +93,7 @@ class AdminController extends GetxController {
               (e) => Map<String, dynamic>.from(e),
         ).toList(),
       );
-    } catch (e) {
+    } catch (e) {print(e);
       AppSnackBar.showError("Failed to load admins");
     }
   }

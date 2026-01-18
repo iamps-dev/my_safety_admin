@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../Utils/Text_form_wgt/text_form_field_wgt.dart';
 import '../../view_model/admin_login_c/admin_login_controller.dart';
 
@@ -11,7 +10,6 @@ class AdminLoginView extends GetView<AdminLoginController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-
       body: Center(
         child: Card(
           elevation: 6,
@@ -43,22 +41,18 @@ class AdminLoginView extends GetView<AdminLoginController> {
 
                 const SizedBox(height: 24),
 
-                // 📧 Email
                 TextFormFieldWgt(
                   hinttext: "Admin Email",
                   controller: controller.emailCtrl,
                   prxicon: Icons.email,
                   inptype: TextInputType.emailAddress,
-                  autofocus: true,
                 ),
 
                 const SizedBox(height: 16),
 
-                // 🔑 Password
                 Obx(() => TextFormFieldWgt(
                   hinttext: "Password",
                   maxline: 1,
-                  autofillHints: [AutofillHints.password], // optional
                   controller: controller.passwordCtrl,
                   prxicon: Icons.lock,
                   obstxt: controller.isPasswordHidden.value,
@@ -70,7 +64,6 @@ class AdminLoginView extends GetView<AdminLoginController> {
 
                 const SizedBox(height: 24),
 
-                // 🔘 Login Button
                 Obx(() => SizedBox(
                   width: double.infinity,
                   height: 48,
@@ -85,15 +78,10 @@ class AdminLoginView extends GetView<AdminLoginController> {
                       ),
                     ),
                     child: controller.isLoading.value
-                        ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                       "LOGIN",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 )),

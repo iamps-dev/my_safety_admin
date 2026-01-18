@@ -1,12 +1,14 @@
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'dart:async';
+
 import '../../app_routes/App_routes.dart';
 import '../../Utils/snackbar/AppSnackBar.dart';
-import 'dart:async';
 
 class AdminDashboardController extends GetxController {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   Timer? _logoutTimer;
 
   @override
@@ -15,36 +17,46 @@ class AdminDashboardController extends GetxController {
     _checkTokenAndScheduleLogout();
   }
 
-  /// 🔹 Check JWT token and schedule auto logout
+  /// ⏱ Check JWT token and schedule auto logout
   Future<void> _checkTokenAndScheduleLogout() async {
-    // ✅ Use the new key ".jt" for JWT token
-    final token = await _secureStorage.read(key: ".jt");
+    final token = await _secureStorage.read(key: "jwt_token");
 
     if (token == null || JwtDecoder.isExpired(token)) {
-      logout();
+      logout(showMessage: false);
       return;
     }
 
-    // Token is valid → schedule auto logout when it expires
     final expiryDate = JwtDecoder.getExpirationDate(token);
-    final durationUntilExpiry = expiryDate.difference(DateTime.now());
+    final duration = expiryDate.difference(DateTime.now());
 
-    _logoutTimer?.cancel(); // cancel previous timer if any
-    _logoutTimer = Timer(durationUntilExpiry, () {
+    // Cancel previous timer
+    _logoutTimer?.cancel();
+
+    // Schedule logout when token expires
+    _logoutTimer = Timer(duration, () {
       logout();
     });
   }
 
-  /// 🔹 Logout
-  Future<void> logout() async {
+  /// 🚪 Logout function
+  Future<void> logout({bool showMessage = true}) async {
     _logoutTimer?.cancel();
 
-    // ✅ Delete both JWT token and user payload
-    await _secureStorage.delete(key: ".jt"); // JWT token
-    await _secureStorage.delete(key: ".ut"); // decoded payload
+    await _secureStorage.delete(key: "jwt_token");
+    await _secureStorage.delete(key: ".ut"); // delete payload if stored
 
-    AppSnackBar.showError("Session expired. Please login again.");
-    Get.offAllNamed(AppRoutes.INITIAL); // navigate to login
+    if (showMessage) {
+      AppSnackBar.showError("Session expired. Please login again.");
+    }
+
+    Get.offAllNamed(AppRoutes.adminLogin);
+  }
+
+  /// 🔐 Get user payload from JWT
+  Future<Map<String, dynamic>> getUserData() async {
+    final token = await _secureStorage.read(key: "jwt_token");
+    if (token == null || JwtDecoder.isExpired(token)) return {};
+    return JwtDecoder.decode(token);
   }
 
   @override

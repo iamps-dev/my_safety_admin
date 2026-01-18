@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart';
 import '../Appurl/app_url.dart';
+import '../../app_routes/App_routes.dart';
 
 class ApiClient {
-  // 🔐 Secure Storage instance
-  static final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  static final FlutterSecureStorage _secureStorage =
+  const FlutterSecureStorage();
 
   static final Dio dio = Dio(
     BaseOptions(
@@ -15,111 +17,121 @@ class ApiClient {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
-      validateStatus: (status) => status != null && status < 500,
+      // ✅ FIXED
+      validateStatus: (status) => status != null && status < 400,
     ),
   )..interceptors.add(
     InterceptorsWrapper(
-      // 🔹 Attach token automatically
+      // 🔐 Attach JWT token
       onRequest: (options, handler) async {
-        final token = await _secureStorage.read(key: ".jt");
-
+        final token = await _secureStorage.read(key: "jwt_token");
         if (token != null && token.isNotEmpty) {
           options.headers["Authorization"] = "Bearer $token";
         }
-        return handler.next(options);
+        handler.next(options);
       },
 
-      // 🔹 Handle auth errors globally
-      onResponse: (response, handler) {
+      // 🚪 Auto logout
+      onResponse: (response, handler) async {
         if (response.statusCode == 401 || response.statusCode == 403) {
-          clearToken(); // token expired / unauthorized
+          await clearToken();
+          Get.offAllNamed(AppRoutes.adminLogin);
         }
-        return handler.next(response);
+        handler.next(response);
       },
 
-      // 🔹 Network / unexpected error
-      onError: (error, handler) {
-        return handler.next(error);
+      onError: (DioException e, handler) {
+        handler.reject(e);
       },
     ),
   );
 
   // ================= TOKEN =================
 
-  /// 🔐 Save JWT
   static Future<void> saveToken(String token) async {
     await _secureStorage.write(key: "jwt_token", value: token);
   }
 
-  /// 🔓 Remove JWT
   static Future<void> clearToken() async {
     await _secureStorage.delete(key: "jwt_token");
+  }
+
+  // ================= ERROR HANDLER =================
+
+  static Map<String, dynamic> _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionError) {
+      return {
+        "success": false,
+        "message": "Server not reachable. Please try again later"
+      };
+    }
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return {
+        "success": false,
+        "message": "Connection timeout. Check your internet"
+      };
+    }
+
+    if (e.response != null) {
+      return {
+        "success": false,
+        "message":
+        e.response?.data?["message"] ?? "Server error occurred"
+      };
+    }
+
+    return {
+      "success": false,
+      "message": "Unexpected error occurred"
+    };
   }
 
   // ================= REQUESTS =================
 
   static Future<Map<String, dynamic>> get(String url) async {
-    final response = await dio.get(url);
-
-    if (response.statusCode == 401 || response.statusCode == 403) {
-      throw Exception(
-        response.data is Map
-            ? response.data['message'] ?? "Unauthorized"
-            : "Unauthorized",
-      );
+    try {
+      final response = await dio.get(url);
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
-
-    return Map<String, dynamic>.from(response.data);
   }
 
   static Future<Map<String, dynamic>> post(
       String url, {
         Map<String, dynamic>? body,
       }) async {
-    final response = await dio.post(url, data: body);
-
-    if (response.statusCode == 401 || response.statusCode == 403) {
-      throw Exception(
-        response.data is Map
-            ? response.data['message'] ?? "Unauthorized"
-            : "Unauthorized",
-      );
+    try {
+      final response = await dio.post(url, data: body);
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
-
-    return Map<String, dynamic>.from(response.data);
-  }
-
-  static Future<Map<String, dynamic>> patch(
-      String url, {
-        Map<String, dynamic>? body,
-      }) async {
-    final response = await dio.patch(url, data: body);
-
-    if (response.statusCode == 401 || response.statusCode == 403) {
-      throw Exception(
-        response.data is Map
-            ? response.data['message'] ?? "Unauthorized"
-            : "Unauthorized",
-      );
-    }
-
-    return Map<String, dynamic>.from(response.data);
   }
 
   static Future<Map<String, dynamic>> put(
       String url, {
         Map<String, dynamic>? body,
       }) async {
-    final response = await dio.put(url, data: body);
-
-    if (response.statusCode == 401 || response.statusCode == 403) {
-      throw Exception(
-        response.data is Map
-            ? response.data['message'] ?? "Unauthorized"
-            : "Unauthorized",
-      );
+    try {
+      final response = await dio.put(url, data: body);
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
+  }
 
-    return Map<String, dynamic>.from(response.data);
+  static Future<Map<String, dynamic>> patch(
+      String url, {
+        Map<String, dynamic>? body,
+      }) async {
+    try {
+      final response = await dio.patch(url, data: body);
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
   }
 }

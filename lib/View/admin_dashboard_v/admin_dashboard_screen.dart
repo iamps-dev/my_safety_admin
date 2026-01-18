@@ -17,9 +17,7 @@ class AdminDashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              controller.logout(); // ✅ use the controller's public method
-            },
+            onPressed: () => controller.logout(),
           ),
         ],
       ),
@@ -28,9 +26,35 @@ class AdminDashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text(
-              "Welcome, Admin!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            FutureBuilder<Map<String, dynamic>>(
+              future: controller.getUserData(),
+              builder: (context, snapshot) {
+                final data = snapshot.data ?? {};
+                final email = data["sub"] ?? "Unknown";
+                final role = data["role"] ?? "ADMIN";
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome, $email!",
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Role: $role",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 20),
             Row(
@@ -61,7 +85,13 @@ class AdminDashboardScreen extends StatelessWidget {
             children: [
               Icon(icon, size: 50, color: Colors.blueAccent),
               const SizedBox(height: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
