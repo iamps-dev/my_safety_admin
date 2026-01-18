@@ -18,7 +18,6 @@ class AdminDrawer extends StatelessWidget {
     if (token == null || JwtDecoder.isExpired(token)) return {};
 
     final decoded = JwtDecoder.decode(token);
-    print("Decoded JWT: $decoded"); // check keys in console
     return decoded;
   }
 
