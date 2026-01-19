@@ -15,16 +15,6 @@ void main() async {
 
   String initialRoute = AppRoutes.INITIAL; // default = login
 
-  if (savedToken != null && savedToken.isNotEmpty) {
-    if (!JwtDecoder.isExpired(savedToken)) {
-      // Token is valid → go to dashboard
-      initialRoute = AppRoutes.adminDashboard;
-    } else {
-      // Token expired → erase storage
-      await secureStorage.delete(key: ".jt"); // delete token
-      await secureStorage.delete(key: ".ut"); // delete payload
-    }
-  }
 
   runApp(MyApp(initialRoute: initialRoute));
 }
